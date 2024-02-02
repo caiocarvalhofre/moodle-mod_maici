@@ -1,4 +1,6 @@
-# maici #
+# Moodle AI Chat Interface #
+
+Moodle AI Chat Interface, abbreviated as "MAICI" snd pronounced "MAY-see" is a chat-based learning activity providing students with a natural language convesation with an an AI agent.
 
 TODO Describe the plugin shortly here.
 
