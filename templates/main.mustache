@@ -1,0 +1,64 @@
+{{!
+    This file is part of Moodle - https://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+    @package     mod_maici
+    @author       <>
+
+}}
+{{#displayactivity}}
+    <script>
+        var assistantName = '{{assistantname}}';
+        var userName = '{{username}}';
+    </script>
+    <style>
+        .openai_message:before {
+            display: none;
+        }
+        .openai_message {
+            margin-bottom: 0.5rem;
+        }
+        .openai_message.user:before {
+            content: {{username}};
+        }
+        .openai_message.bot:before {
+            content: {{assistantname}};
+        }
+    </style>
+
+    <div class="maici_container">
+        {{{instructions}}}
+        <div id="openai_chat_log" role="log"></div>
+        <div id="control_bar">
+            <div id="input_bar">
+                <input id="openai_input" placeholder="Ask question.." type="text" name="message" />
+                <button title="Submit" id="go"><i class="fa-solid fa-arrow-right"></i></button>
+            </div>
+            <button title="New chat" id="refresh"><i class="fa-solid fa-arrows-rotate"></i></button>
+        </div>
+    </div>
+{{/displayactivity}}
+{{^displayactivity}}
+    {{{instructions}}}
+    {{{info}}}
+{{/displayactivity}}
+{{#js}}
+    require(['jquery'], function($) {
+    $(document).ready(function() {
+    // Find the div with ID "intro" and hide it
+    $("#intro").hide();
+    });
+    });
+{{/js}}

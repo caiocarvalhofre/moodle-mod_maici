@@ -1,0 +1,158 @@
+<?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ * Class providing completions for chat models (3.5 and up)
+ *
+ * @package    mod_maici
+ * @copyright
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+*/
+
+namespace mod_maici\completion;
+
+use mod_maici\completion;
+defined('MOODLE_INTERNAL') || die;
+
+class chat extends \mod_maici\completion {
+
+    public function __construct($model, $message, $history, $block_settings, $thread_id = null) {
+        parent::__construct($model, $message, $history, $block_settings);
+    }
+
+    /**
+     * Given everything we know after constructing the parent, create a completion by constructing the prompt and making the api call
+     * @return JSON: The API response from OpenAI
+     */
+    public function create_completion($context) {
+        if ($this->sourceoftruth) {
+            $this->sourceoftruth = format_string($this->sourceoftruth, true, ['context' => $context]);
+            $this->prompt .= get_string('sourceoftruthreinforcement', 'mod_maici');
+        }
+        $this->prompt .= "\n\n";
+
+        $history_json = $this->format_history();
+        array_unshift($history_json, ["role" => "system", "content" => $this->prompt]);
+        array_unshift($history_json, ["role" => "system", "content" => $this->sourceoftruth]);
+
+        array_push($history_json, ["role" => "user", "content" => $this->message]);
+
+        return $this->make_api_call($history_json);
+    }
+
+    public function log_conversation($usage,$completion) {
+        global $DB,$USER;
+        $log = new \stdClass();
+        $log->maiciid =  $this->maiciid;
+        $log->cmid =  $this->cmid;
+        $log->userid =  $USER->id;
+        $log->prompt_tokens =  $usage->prompt_tokens;
+        $log->completion_tokens =  $usage->completion_tokens;
+        $log->total_tokens =  $usage->total_tokens;
+        $log->message =  '';
+        $log->completion =  '';
+        if($this->conversation_logging){
+            $log->message =  $this->message;
+            $log->completion =  $completion;
+        }
+        $log->timecreated =  time();
+        $log->timemodified =  time();
+        if($log->id = $DB->insert_record('maici_logs',$log)){
+
+            $moduleinstance = $DB->get_record('maici',['id'=>$log->maiciid]);
+            if($this->check_user_completion($moduleinstance->completionaiexchanges, $log)){
+                $course = get_course($moduleinstance->course);
+                $completion = new \completion_info($course);
+                $cm = get_coursemodule_from_instance('maici', $log->maiciid);
+                if ($completion->is_enabled($cm)) {
+                    $current = $completion->get_data($cm, false, $log->userid);
+                    $current->completionstate = COMPLETION_COMPLETE;
+                    $current->timemodified = time();
+                    $completion->internal_set_data($cm, $current);
+                }
+            }
+        }
+
+        return $log->id;
+    }
+
+    /**
+     * Format the history JSON into a string that we can pass in the prompt
+     * @return string: The string representing the chat history to add to the prompt
+     */
+    private function format_history() {
+        $history = [];
+        foreach ($this->history as $index => $message) {
+            $role = $index % 2 === 0 ? 'user' : 'assistant';
+            array_push($history, ["role" => $role, "content" => $message["message"]]);
+        }
+        return $history;
+    }
+
+    /**
+     * Make the actual API call to OpenAI
+     * @return JSON: The response from OpenAI
+     */
+    private function make_api_call($history) {
+        $curlbody = [
+            "model" => $this->model,
+            "messages" => $history,
+            "temperature" => (float) $this->temperature,
+            "max_tokens" => (int) $this->maxlength,
+            "top_p" => (float) $this->topp,
+            "frequency_penalty" => (float) $this->frequency,
+            "presence_penalty" => (float) $this->presence,
+            "stop" => $this->username . ":"
+        ];
+
+        $curl = new \curl();
+        $curl->setopt(array(
+            'CURLOPT_HTTPHEADER' => array(
+                'Authorization: Bearer ' . $this->apikey,
+                'Content-Type: application/json'
+            ),
+        ));
+
+        $response = $curl->post("https://api.openai.com/v1/chat/completions", json_encode($curlbody));
+        $response = json_decode($response);
+
+        return $response;
+    }
+
+    private function check_user_completion($exchanges, $loginstance) {
+        global $DB;
+
+        $params = [];
+        $params['cmid'] = $loginstance->cmid;
+        $params['userid'] = $loginstance->userid;
+
+        $select = "SELECT COUNT(chl.id) as records  ";
+        $fields = " ";
+        $from = " FROM {maici_logs} chl ";
+        $join = "  ";
+        $where = " WHERE chl.cmid=:cmid AND userid=:userid ";
+        $groupby = "  ";
+
+        $sql = $select . $fields . $from . $join . $where . $groupby;
+
+        if($records = $DB->get_record_sql($sql,$params)){
+            if($records->records >= $exchanges){
+                return true;
+            }
+        }
+        return false;
+    }
+}
