@@ -1,10 +1,16 @@
 # Moodle AI Chat Interface #
 
-Moodle AI Chat Interface, abbreviated as "MAICI" snd pronounced "MAY-see" is a chat-based learning activity providing students with a natural language convesation with an an AI agent.
+Moodle AI Chat Interface, abbreviated as "MAICI" and pronounced "MAY-see" is a chat-based learning activity providing students with natural language convesation with an an AI Agent. 
 
-TODO Describe the plugin shortly here.
+Using this plugin, an instructor or course designer can create one or several activities of this kind within the same course. This plugin supports an "initializing prompt" which is sent to the agent as well as any documents you wish to be uploaded at the beginning of the conversation thread.
 
-TODO Provide more detailed description here.
+The plugin works with both standard "ChatGPT" and you can access OpenAI "Assistants" which you have aready created in your account.
+
+The amount of bandwidth back-and-forth with Open AI can be capped according to an approximate number of tokens.
+
+Additionally, our plugin supports two types of completion criteria which can be used, or not, in any configuration:
+1. Student must view activity
+2. Student must complete a number of exchanges
 
 ## Installing via uploaded ZIP file ##
 
