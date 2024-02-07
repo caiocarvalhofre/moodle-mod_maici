@@ -30,31 +30,13 @@ if (true) {
     $settings = new admin_settingpage('mod_maici_settings', new lang_string('pluginname', 'mod_maici'));
 
     if ($ADMIN->fulltree) {
-        //Default Description block
-        $name = new lang_string('description', 'mod_maici');
-        $description = new lang_string('description_help', 'mod_maici');
-        $default = get_string('descriptiondefault', 'mod_maici');
-        $setting = new admin_setting_configtextarea('mod_maici/descriptionblock',
-            $name,
-            $description,
-            $default);
-        $setting->set_force_ltr(false);
-        $settings->add($setting);
-
-        //Default Instruction block
-        $name = new lang_string('instruction', 'mod_maici');
-        $description = new lang_string('instruction_help', 'mod_maici');
-        $default = get_string('instructiondefault', 'mod_maici');
-        $setting = new admin_setting_configtextarea('mod_maici/instructionblock',
-            $name,
-            $description,
-            $default);
-        $setting->set_force_ltr(false);
-        $settings->add($setting);
+        // Less non-HTML characters than this is short
+        $settings->add(new admin_setting_configtext('mod_maici/maxtokenslimit', get_string('maxtokenslimit', 'mod_maici'),
+            get_string('maxtokenslimit_help', 'maici'), 3000, PARAM_INT));
 
         // Less non-HTML characters than this is short
-        $settings->add(new admin_setting_configtext('mod_maici/maxlength', get_string('maxlength', 'mod_maici'),
-            get_string('maxlength_help', 'maici'), 300, PARAM_INT));
+        $settings->add(new admin_setting_configtext('mod_maici/maxtokens', get_string('maxtokens', 'mod_maici'),
+            get_string('maxtokens_help', 'maici'), 3000, PARAM_INT));
 
         $settings->add(new admin_setting_configtext('mod_maici/apikey', get_string('apikey','mod_maici'),
             get_string('descapikey', 'maici'), '',PARAM_TEXT));

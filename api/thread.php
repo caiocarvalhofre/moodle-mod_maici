@@ -41,7 +41,7 @@ $thread_id = clean_param($body['threadId'], PARAM_NOTAGS, true);
 
 $cm = get_coursemodule_from_id('maici', $cm_id, 0, false, MUST_EXIST);
 $moduleinstance = $DB->get_record('maici', ['id' => $cm->instance]);
-$apikey = $moduleinstance->apikey;
+$apikey = $moduleinstance->apikey ?:get_config('mod_maici','apikey');
 
 $curl = new \curl();
 $curl->setopt(array(

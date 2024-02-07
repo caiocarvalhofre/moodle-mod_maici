@@ -26,12 +26,13 @@ defined('MOODLE_INTERNAL') || die;
 $functions = array(
     'mod_maici_validate_user_tokens' => array(
         'classname' => 'mod_maici\external',
-        'description' => 'Validate user token usage',
+        'methodname' => 'validate_user_tokens',
+        'classpath' => 'mod_maici\classes\external.php',
+        'description' => 'Check user token usage',
         'type' => 'read',
         'capabilities' => '',
         'ajax' => true,
         'loginrequired' => true,
-        'services' => MOODLE_OFFICIAL_MOBILE_SERVICE,
     ),
     );
 

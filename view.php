@@ -49,6 +49,9 @@ $PAGE->set_title(format_string($moduleinstance->name));
 $PAGE->set_heading(format_string($course->fullname));
 $PAGE->set_context($modulecontext);
 
+$completion = new completion_info($course);
+$completion->set_module_viewed($cm);
+
 echo $OUTPUT->header();
 
 $aichat = new \mod_maici\output\aichat($moduleinstance,$cm->id,$moduleinstance->intro);

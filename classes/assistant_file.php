@@ -29,7 +29,7 @@ class assistant_file {
 
     protected $apikey;
     protected $moduleinstance;
-    private mixed $context;
+    protected $contextid;
 
     /**
      * Initialize all the class properties that we'll need regardless of model
@@ -38,11 +38,11 @@ class assistant_file {
      * @param array history: An array of objects containing the history of the conversation
      * @param string block_settings: An object containing the instance-level settings if applicable
      */
-    public function __construct($moduleinstance, $context) {
+    public function __construct($moduleinstance, $contextid) {
 
-        $this->apikey = $moduleinstance->apikey;
+        $this->apikey = $moduleinstance->apikey ?:get_config('mod_maici','apikey');
         $this->moduleinstance = $moduleinstance;
-        $this->context = $context;
+        $this->contextid = $contextid;
 
     }
 
@@ -54,9 +54,9 @@ class assistant_file {
      * @throws coding_exception
      * @throws dml_exception
      */
-    private function get_storage_file($filearea, $itemid,$context){
+    private function get_storage_file($filearea, $itemid){
         $fs = get_file_storage();
-        $files = $fs->get_area_files($context->id, 'mod_maici', $filearea, $itemid);
+        $files = $fs->get_area_files($this->contextid, 'mod_maici', $filearea, $itemid);
         if ($files) {
             foreach ($files as $file) {
                 $requestdir = make_request_directory();
@@ -71,14 +71,15 @@ class assistant_file {
 
     public function openai_assistantfiles_request()
     {
-        if($file_path = $this->get_storage_file('assistantfile',$this->moduleinstance->id,$this->context)){
+        if($file_path = $this->get_storage_file('assistantfile',$this->moduleinstance->id)){
 
             //check if file is already there
-            if(isset($this->moduleinstance->assistantfileid) && $this->is_assistantfile_listed($this->moduleinstance->assistantfileid,$this->moduleinstance->apikey)){
+            $api_key = $this->moduleinstance->apikey ?:get_config('mod_maici','apikey');
+            if(isset($this->moduleinstance->assistantfileid)
+                && $this->is_assistantfile_listed($this->moduleinstance->assistantfileid,$api_key)){
                 $this->delete_assistantfile($this->moduleinstance->assistantfileid);
             }
 
-            $api_key = $this->moduleinstance->apikey;
             $purpose = "assistants";
 
             $curl = curl_init();
@@ -145,9 +146,7 @@ class assistant_file {
         return $result;
     }
 
-    private function is_assistantfile_listed($assistantfileid, $apikey) {
-
-        $api_key = $apikey;
+    private function is_assistantfile_listed($assistantfileid, $api_key) {
 
         $curl = curl_init();
 

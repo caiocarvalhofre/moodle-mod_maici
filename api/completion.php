@@ -54,7 +54,6 @@ $PAGE->set_context($context);
 $block_settings = [];
 $block_settings ['sourceoftruth'] = $moduleinstance->sourceoftruth;
 $block_settings ['prompt'] = $moduleinstance->prompt;
-//$block_settings ['instructions'] = '';
 $block_settings ['temperature'] = 0.5;
 $block_settings ['topp'] = 1;
 $block_settings ['frequency'] = 1;
@@ -63,8 +62,8 @@ $block_settings ['username'] = $moduleinstance->username;
 $block_settings ['assistantname'] = $moduleinstance->assistantname;
 $block_settings ['assistant'] = $moduleinstance->assistant;
 $block_settings ['model'] = $moduleinstance->model;
-$block_settings ['apikey'] = $moduleinstance->apikey;
-$block_settings ['maxlength'] = get_config('mod_maici', 'maxlength'); // pridat overenie podla databazy
+$block_settings ['apikey'] = $moduleinstance->apikey ?:get_config('mod_maici','apikey');
+$block_settings ['maxlength'] = get_config('mod_maici', 'maxtokens');
 $block_settings ['cmid'] = $cm_id;
 $block_settings ['maiciid'] = $moduleinstance->id;
 $block_settings ['conversation_logging'] = $moduleinstance->conversation_logging;
@@ -73,7 +72,6 @@ $engine_class='\mod_maici\completion\\'.$moduleinstance->apitype;
 
 $completion = new $engine_class(...[$moduleinstance->model, $message, $history, $block_settings, $thread_id]);
 $response = $completion->create_completion($PAGE->context);
-
 
 if($moduleinstance->apitype=='chat'){
     $message_response = [
@@ -86,13 +84,17 @@ if($moduleinstance->apitype=='chat'){
     $completion_message = $message_response["message"];
     $message_response = json_encode($message_response);
 
-    $completion->log_conversation($response->usage,$completion_message);
+    $completion->log_conversation($completion_message, $moduleinstance, $response->usage);
 
     echo $message_response;
 }else{
     // Format the markdown of each completion message into HTML.
     $response["message"] = format_text($response["message"], FORMAT_MARKDOWN, ['context' => $context]);
+    $completion_message = $response["message"];
+    $usage = maici_get_assistant_token_usage($message,$completion_message);
     $response = json_encode($response);
+
+    $completion->log_conversation($completion_message, $moduleinstance, $usage);
 
     echo $response;
 }

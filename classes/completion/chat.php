@@ -38,55 +38,22 @@ class chat extends \mod_maici\completion {
      * @return JSON: The API response from OpenAI
      */
     public function create_completion($context) {
+        $history_json = $this->format_history();
+
+        if ($this->prompt) {
+            $this->prompt = format_string($this->prompt);
+            array_unshift($history_json, ["role" => "system", "content" => $this->prompt]);
+        }
+
         if ($this->sourceoftruth) {
             $this->sourceoftruth = format_string($this->sourceoftruth, true, ['context' => $context]);
-            $this->prompt .= get_string('sourceoftruthreinforcement', 'mod_maici');
+            //$this->prompt .= get_string('sourceoftruthreinforcement', 'mod_maici');
+            array_unshift($history_json, ["role" => "system", "content" => $this->sourceoftruth]);
         }
-        $this->prompt .= "\n\n";
-
-        $history_json = $this->format_history();
-        array_unshift($history_json, ["role" => "system", "content" => $this->prompt]);
-        array_unshift($history_json, ["role" => "system", "content" => $this->sourceoftruth]);
 
         array_push($history_json, ["role" => "user", "content" => $this->message]);
 
         return $this->make_api_call($history_json);
-    }
-
-    public function log_conversation($usage,$completion) {
-        global $DB,$USER;
-        $log = new \stdClass();
-        $log->maiciid =  $this->maiciid;
-        $log->cmid =  $this->cmid;
-        $log->userid =  $USER->id;
-        $log->prompt_tokens =  $usage->prompt_tokens;
-        $log->completion_tokens =  $usage->completion_tokens;
-        $log->total_tokens =  $usage->total_tokens;
-        $log->message =  '';
-        $log->completion =  '';
-        if($this->conversation_logging){
-            $log->message =  $this->message;
-            $log->completion =  $completion;
-        }
-        $log->timecreated =  time();
-        $log->timemodified =  time();
-        if($log->id = $DB->insert_record('maici_logs',$log)){
-
-            $moduleinstance = $DB->get_record('maici',['id'=>$log->maiciid]);
-            if($this->check_user_completion($moduleinstance->completionaiexchanges, $log)){
-                $course = get_course($moduleinstance->course);
-                $completion = new \completion_info($course);
-                $cm = get_coursemodule_from_instance('maici', $log->maiciid);
-                if ($completion->is_enabled($cm)) {
-                    $current = $completion->get_data($cm, false, $log->userid);
-                    $current->completionstate = COMPLETION_COMPLETE;
-                    $current->timemodified = time();
-                    $completion->internal_set_data($cm, $current);
-                }
-            }
-        }
-
-        return $log->id;
     }
 
     /**
@@ -130,29 +97,5 @@ class chat extends \mod_maici\completion {
         $response = json_decode($response);
 
         return $response;
-    }
-
-    private function check_user_completion($exchanges, $loginstance) {
-        global $DB;
-
-        $params = [];
-        $params['cmid'] = $loginstance->cmid;
-        $params['userid'] = $loginstance->userid;
-
-        $select = "SELECT COUNT(chl.id) as records  ";
-        $fields = " ";
-        $from = " FROM {maici_logs} chl ";
-        $join = "  ";
-        $where = " WHERE chl.cmid=:cmid AND userid=:userid ";
-        $groupby = "  ";
-
-        $sql = $select . $fields . $from . $join . $where . $groupby;
-
-        if($records = $DB->get_record_sql($sql,$params)){
-            if($records->records >= $exchanges){
-                return true;
-            }
-        }
-        return false;
     }
 }

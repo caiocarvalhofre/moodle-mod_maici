@@ -1,11 +1,21 @@
-.maici_container {
+#maici_container {
     width: -webkit-fill-available;
+}
+
+.path-mod-maici .overflow-hidden {
+    max-height: 7rem;
+    overflow-y: auto !important;
+}
+
+.path-mod-maici .overlay {
+    opacity: 0.15;
+    pointer-events: none;
 }
 
 #openai_chat_log {
     display: flex;
     flex-direction: column;
-    max-height: 20rem;
+    height: 20rem;
     overflow-y: scroll;
     margin-bottom: 0.5rem;
 }
@@ -19,6 +29,7 @@
  #control_bar {
     display: flex;
     gap: 0.5rem;
+    justify-content: center;
 }
  #control_bar button {
     background: var(--blue);

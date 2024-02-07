@@ -71,11 +71,20 @@ class mod_maici_mod_form extends moodleform_mod {
         $mform->addHelpButton('instructions', 'instruction', 'mod_maici');
 
         //OpenAI settings
-        $mform->addElement('text', 'apikey', get_string('apikey', 'mod_maici'),array('size'=>64));
-        $mform->setDefault('apikey', get_config('mod_maici','apikey'));
+        $defaultapikey = get_config('mod_maici','apikey');
+        if($defaulassistants = maici_fetch_assistants_array($defaultapikey)){
+            $mform->addElement('hidden', 'defaultapikey',$defaultapikey);
+            $mform->setType('defaultapikey', PARAM_TEXT);
+
+            $mform->addElement('html', get_string('defaultapikey','mod_maici').'</br></br>');
+        }
+
+        $mform->addElement('text', 'apikey', get_string('apikey', 'mod_maici'),array('size'=>57));
         $mform->setType('apikey', PARAM_TEXT);
         $mform->addHelpButton('apikey', 'apikey', 'mod_maici');
-        $mform->addRule('apikey', null, 'required', null, 'client');
+        if(!$defaulassistants){
+            $mform->addRule('apikey', null, 'required', null, 'client');
+        }
 
         $mform->addElement('text', 'assistantname', get_string('assistantname','mod_maici'),array('size'=>40));
         $mform->setType('assistantname', PARAM_TEXT);
@@ -89,17 +98,10 @@ class mod_maici_mod_form extends moodleform_mod {
         $mform->setDefault('username', 'User');
         $mform->addHelpButton('username', 'username', 'mod_maici');
 
-        $mform->addElement('select', 'apitype', get_string('apitype', 'mod_maici'), ['chat' => 'chat', 'assistant' => 'assistant']);
+        $mform->addElement('checkbox', 'conversation_logging', get_string('conversation_logging', 'mod_maici'));
+        $mform->addHelpButton('conversation_logging', 'conversation_logging', 'mod_maici');
 
-
-        /////------------CHAT
-        $mform->addElement('header', 'chatheader', get_string('chatsett','mod_maici'));
-
-        $models = maici_get_models()['models'];
-        $mform->addElement('select', 'model', get_string('model', 'mod_maici'),$models);
-        $mform->addHelpButton('model', 'model', 'mod_maici');
-
-        $mform->addElement('html', get_string('maxlength_info','mod_maici',get_config('mod_maici', 'maxlength')).'</br></br>');
+        $mform->addElement('html', get_string('maxlength_info','mod_maici',get_config('mod_maici', 'maxtokenslimit')).'</br></br>');
 
         $mform->addElement('text', 'maxperday', get_string('maxperday','mod_maici'));
         $mform->setType('maxperday', PARAM_INT);
@@ -113,8 +115,14 @@ class mod_maici_mod_form extends moodleform_mod {
         $mform->setType('maxpermonth', PARAM_INT);
         $mform->addHelpButton('maxpermonth', 'maxpermonth', 'mod_maici');
 
-        $mform->addElement('checkbox', 'conversation_logging', get_string('conversation_logging', 'mod_maici'));
-        $mform->addHelpButton('conversation_logging', 'conversation_logging', 'mod_maici');
+        $mform->addElement('select', 'apitype', get_string('apitype', 'mod_maici'), ['chat' => 'chat', 'assistant' => 'assistant']);
+
+        /////------------CHAT
+        $mform->addElement('header', 'chatheader', get_string('chatsett','mod_maici'));
+
+        $models = maici_get_models()['models'];
+        $mform->addElement('select', 'model', get_string('model', 'mod_maici'),$models);
+        $mform->addHelpButton('model', 'model', 'mod_maici');
 
         $mform->addElement('textarea', 'prompt', get_string('prompt', 'mod_maici'),
             array('rows' => 8, 'cols' => 41));
@@ -131,7 +139,6 @@ class mod_maici_mod_form extends moodleform_mod {
         $mform->hideIf('maxperday','apitype','nq','chat');
         $mform->hideIf('maxperuser','apitype','nq','chat');
         $mform->hideIf('maxpermonth','apitype','nq','chat');
-        $mform->hideIf('conversation_logging','apitype','nq','chat');
         $mform->hideIf('prompt','apitype','nq','chat');
         $mform->hideIf('sourceoftruth','apitype','nq','chat');
 
@@ -147,8 +154,8 @@ class mod_maici_mod_form extends moodleform_mod {
             $apikey = null;
         }
 
-        if($assistants = maici_fetch_assistants_array($apikey)){
-            $mform->addElement('select', 'assistant', get_string('assistant', 'mod_maici'),$assistants);
+        if(($assistants = maici_fetch_assistants_array($apikey)) || $defaulassistants){
+            $mform->addElement('select', 'assistant', get_string('assistant', 'mod_maici'),$assistants?:$defaulassistants);
             $mform->addHelpButton('assistant', 'assistant', 'mod_maici');
         }else{
             $mform->addElement('html', get_string('noassistant','mod_maici').'</br></br>');
@@ -171,6 +178,8 @@ class mod_maici_mod_form extends moodleform_mod {
         $mform->hideIf('assistantfile','apitype','eq','chat');
         $mform->hideIf('persistconvo','apitype','eq','chat');
 
+        $mform->setExpanded('chatheader');
+        $mform->setExpanded('assistantheader');
         // Add standard elements.
         $this->standard_coursemodule_elements();
 
@@ -182,28 +191,24 @@ class mod_maici_mod_form extends moodleform_mod {
         $mform = & $this->_form;
         $group = [];
 
-        $suffix = $this->get_suffix();
-        $completionentriesenabledel = 'completionai' . $suffix;
-        $group[] = $mform->createElement('checkbox', $completionentriesenabledel, '', get_string('completiondetail:exchanges', 'mod_maici'));
+        $group[] = $mform->createElement('checkbox', 'completionai', '', get_string('completiondetail:exchanges', 'mod_maici'));
         $mform->setType('completionai', PARAM_INT);
 
-        $completionentriesel = 'completionaiexchanges' . $suffix;
-        $group[] = $mform->createElement('text', $completionentriesel, get_string('completionaiexchanges','mod_maici'));
+        $group[] = $mform->createElement('text', 'completionaiexchanges', get_string('completionaiexchanges','mod_maici'));
         $mform->setType('completionaiexchanges', PARAM_INT);
 
-        $completionentriesgroupel = 'completionaidgroup' . $suffix;
         $mform->addGroup(
             $group,
-            $completionentriesgroupel,
+            'completionaidgroup',
             '',
             [' '],
             false
         );
-        $mform->hideIf($completionentriesel, $completionentriesenabledel, 'notchecked');
-        $mform->setDefault($completionentriesel, 1);
-        $mform->setType($completionentriesel, PARAM_INT);
+        $mform->hideIf('completionaiexchanges', 'completionai', 'notchecked');
+        $mform->setDefault('completionaiexchanges', 1);
+        $mform->setType('completionaiexchanges', PARAM_INT);
         /* This ensures the elements are disabled unless completion rules are enabled */
-        return [$completionentriesgroupel];
+        return ['completionaidgroup'];
     }
 
     function completion_rule_enabled($data) {
@@ -211,10 +216,9 @@ class mod_maici_mod_form extends moodleform_mod {
     }
 
     public function validation($data, $files) {
-        global $USER;
         $errors = parent::validation($data, $files);
 
-        $maxtokens = get_config('mod_maici', 'maxlength');
+        $maxtokens = get_config('mod_maici', 'maxtokenslimit');
 
         if (isset($data['maxperday']) && $data['maxperday'] > $maxtokens) {
             $errors['maxperday'] = get_string('maxlengthlimit', 'mod_maici',$maxtokens);
@@ -226,6 +230,11 @@ class mod_maici_mod_form extends moodleform_mod {
 
         if (isset($data['maxpermonth']) && $data['maxpermonth'] > $maxtokens) {
             $errors['maxpermonth'] = get_string('maxlengthlimit', 'mod_maici',$maxtokens);
+        }
+
+        if((!isset($data['defaultapikey']) && empty($data['apikey']))
+            || (!isset($data['defaultapikey']) && !maici_fetch_assistants_array($data['apikey']))){
+            $errors['apikey'] = get_string('apikeyerror', 'mod_maici',$maxtokens);
         }
 
         $fs = get_file_storage();
@@ -305,7 +314,12 @@ class mod_maici_mod_form extends moodleform_mod {
 
         if (!empty($data->apikey) && !isset($data->assistant)) {
             $assistant = maici_fetch_assistants_array($data->apikey);
-            $data->assistant = count($assistant) ? reset($assistant) : null;
+            $data->assistant = count($assistant) ? key($assistant) : null;
+        }
+
+        if (empty($data->apikey) && isset($data->defaultapikey)) {
+            $assistant = maici_fetch_assistants_array($data->defaultapikey);
+            $data->assistant = count($assistant) ? key($assistant) : null;
         }
     }
 }

@@ -38,15 +38,16 @@
         }
     </style>
 
-    <div class="maici_container">
+    <div id="maici_container">
         {{{instructions}}}
+        {{{conversation_logging}}}
         <div id="openai_chat_log" role="log"></div>
         <div id="control_bar">
-            <div id="input_bar">
+            <div id="input_bar" class="col-11">
                 <input id="openai_input" placeholder="Ask question.." type="text" name="message" />
-                <button title="Submit" id="go"><i class="fa-solid fa-arrow-right"></i></button>
+                <button title="Submit" id="go"><i class="fa-solid fa fa-arrow-right"></i></button>
             </div>
-            <button title="New chat" id="refresh"><i class="fa-solid fa-arrows-rotate"></i></button>
+            <button title="New chat" id="refresh"><i class="fa-solid fa fa-refresh"></i></button>
         </div>
     </div>
 {{/displayactivity}}

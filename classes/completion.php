@@ -68,8 +68,8 @@ class completion {
 
         $this->message = $message;
         $this->history = $history;
-
-        $this->build_source_of_truth($block_settings['sourceoftruth']);
+        $this->sourceoftruth = $block_settings['sourceoftruth'];
+        //$this->build_source_of_truth($block_settings['sourceoftruth']);
     }
 
 
@@ -86,5 +86,73 @@ class completion {
                 . $localsourceoftruth . "\n\n";
             }
         $this->sourceoftruth = $sourceoftruth;
+    }
+
+    /**
+     * @param $usage
+     * @param $completion
+     * @return bool|int
+     * @throws \coding_exception
+     * @throws \dml_exception
+     */
+    public function log_conversation($completion, $moduleinstance, $usage=0) {
+        global $DB,$USER;
+        $log = new \stdClass();
+        $log->maiciid =  $this->maiciid;
+        $log->cmid =  $this->cmid;
+        $log->userid =  $USER->id;
+        $log->prompt_tokens = $usage ? $usage->prompt_tokens : $usage;
+        $log->completion_tokens =  $usage ? $usage->completion_tokens : $usage;
+        $log->total_tokens =  $usage ? $usage->total_tokens : $usage;
+        $log->message =  '';
+        $log->completion =  '';
+        $log->logging =  false;
+        $log->apitype =  $moduleinstance->apitype;
+        if($this->conversation_logging){
+            $log->logging =  true;
+            $log->message =  $this->message;
+            $log->completion =  $completion;
+        }
+        $log->timecreated =  time();
+        if($log->id = $DB->insert_record('maici_logs',$log)){
+
+            if($this->check_user_completion($moduleinstance->completionaiexchanges, $log)){
+                $course = get_course($moduleinstance->course);
+                $completion = new \completion_info($course);
+                $cm = get_coursemodule_from_instance('maici', $log->maiciid);
+                if ($completion->is_enabled($cm)) {
+                    $current = $completion->get_data($cm, false, $log->userid);
+                    $current->completionstate = COMPLETION_COMPLETE;
+                    $current->timemodified = time();
+                    $completion->internal_set_data($cm, $current);
+                }
+            }
+        }
+
+        return $log->id;
+    }
+
+    private function check_user_completion($exchanges, $loginstance) {
+        global $DB;
+
+        $params = [];
+        $params['cmid'] = $loginstance->cmid;
+        $params['userid'] = $loginstance->userid;
+
+        $select = "SELECT COUNT(chl.id) as records  ";
+        $fields = " ";
+        $from = " FROM {maici_logs} chl ";
+        $join = "  ";
+        $where = " WHERE chl.cmid=:cmid AND userid=:userid ";
+        $groupby = "  ";
+
+        $sql = $select . $fields . $from . $join . $where . $groupby;
+
+        if($records = $DB->get_record_sql($sql,$params)){
+            if($records->records >= $exchanges){
+                return true;
+            }
+        }
+        return false;
     }
 }

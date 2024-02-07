@@ -82,7 +82,7 @@ function maici_get_coursemodule_info($coursemodule) {
  * @param stdClass $cm course module object
  * @param stdClass $context context object
  * @return array
- * @package  mod_dehnseminar
+ * @package
  * @category files
  */
 function maici_get_file_areas($course, $cm, $context) {
@@ -107,10 +107,6 @@ function maici_add_instance($moduleinstance, $mform = null) {
     global $DB;
 
     $moduleinstance->timecreated = time();
-    /*if(!empty($moduleinstance->apikey)){
-        $assistant_array = maici_fetch_assistants_array($moduleinstance->apikey);
-        $moduleinstance->assistant = count($assistant_array) ? reset($assistant_array) : null;
-    }*/
 
     $id = $DB->insert_record('maici', $moduleinstance);
     $moduleinstance->id = $id;
@@ -136,7 +132,7 @@ function maici_add_instance($moduleinstance, $mform = null) {
         $fs->delete_area_files($context->id, 'mod_maici', 'assistantfile', $moduleinstance->id);
         file_save_draft_area_files($moduleinstance->assistantfile, $context->id, 'mod_maici', 'assistantfile', $moduleinstance->id, $options);
 
-        $file_ai_manager = new \mod_maici\assistant_file($moduleinstance, $context);
+        $file_ai_manager = new \mod_maici\assistant_file($moduleinstance, $context->id);
         $moduleinstance->assistantfileid = $file_ai_manager->openai_assistantfiles_request();
     }
 
@@ -161,12 +157,6 @@ function maici_update_instance($moduleinstance, $mform = null) {
     $moduleinstance->timemodified = time();
     $moduleinstance->id = $moduleinstance->instance;
 
-    if($moduleinstance->apitype=='assistant' && (isset($moduleinstance->assistant) && empty($moduleinstance->assistant))){
-        $assistant_array = maici_fetch_assistants_array($moduleinstance->apikey);
-        $moduleinstance->assistant = count($assistant_array) ? reset($assistant_array) : null;
-    }
-
-
     $DB->update_record("maici", $moduleinstance);
 
     $context = context_module::instance($moduleinstance->coursemodule);
@@ -187,7 +177,7 @@ function maici_update_instance($moduleinstance, $mform = null) {
         $options = array('subdirs' => false, 'embed' => false);
         file_save_draft_area_files($moduleinstance->assistantfile, $context->id, 'mod_maici', 'assistantfile', $moduleinstance->id, $options);
 
-        $file_ai_manager = new \mod_maici\assistant_file($moduleinstance, $context);
+        $file_ai_manager = new \mod_maici\assistant_file($moduleinstance, $context->id);
         $moduleinstance->assistantfileid = $file_ai_manager->openai_assistantfiles_request();
     }
 
@@ -231,6 +221,36 @@ function maici_cm_info_view(cm_info $cm) {
     }
 
     $cm->set_content($intro,true);
+}
+
+/**
+ * Extends the settings navigation with the mod_maici settings.
+ *
+ * This function is called when the context for the page is a mod_maici module.
+ * This is not called by AJAX so it is safe to rely on the $PAGE.
+ *
+ * @param settings_navigation $settingsnav {@see settings_navigation}
+ * @param navigation_node $maicinode {@see navigation_node}
+ */
+function maici_extend_settings_navigation($settingsnav, $maicinode) {
+    global $PAGE, $DB;
+    $keys = $maicinode->get_children_key_list();
+    $beforekey = null;
+    $i = array_search('modedit', $keys);
+    if ($i === false and array_key_exists(0, $keys)) {
+        $beforekey = $keys[0];
+    } else if (array_key_exists($i + 1, $keys)) {
+        $beforekey = $keys[$i + 1];
+    }
+
+
+    if (has_capability('mod/maici:viewmodulereport', context_module::instance($PAGE->cm->id))) {
+        $url = new moodle_url('/mod/maici/report_logging.php',  array('id' => $PAGE->cm->id));
+        $node = navigation_node::create(get_string('report_logging', 'mod_maici'),
+            $url,
+            navigation_node::TYPE_ACTIVITY, null, 'mod_maici_report_logging',new  image_icon('i/report', 'reportlogging'));
+        $maicinode->add_node($node, $beforekey);
+    }
 }
 
 function maici_fetch_assistants_array($apikey = null) {
@@ -320,4 +340,47 @@ function maici_format_instructions($moduleinstance, $cmid, $filter=true) {
     $options = array('noclean' => true, 'para' => false, 'filter' => $filter, 'context' => $context, 'overflowdiv' => true);
     $instructions = file_rewrite_pluginfile_urls($moduleinstance->instructions_submit, 'pluginfile.php', $context->id, 'mod_maici', 'intro', null);
     return trim(format_text($instructions, $moduleinstance->instructionsformat, $options, null));
+}
+
+/**
+ * Sanitize string for use as filename
+ *
+ * @param $string
+ * @return void
+ */
+function maici_sanitize_filename(&$string) {
+    $unwanted_array =
+        array( "/" => "_",
+            'Å' => 'A', 'Æ' => 'A', 'Ç' => 'C', 'È' => 'E', 'É' => 'E',
+            'Ê' => 'E', 'Ë' => 'E', 'Ì' => 'I', 'Í' => 'I', 'Î' => 'I', 'Ï' => 'I', 'Ñ' => 'N', 'Ò' => 'O', 'Ó' => 'O',
+            'Ô' => 'O', 'Õ' => 'O', 'Ö' => 'O', 'Ø' => 'O', 'Ù' => 'U','Ť'=>'T',
+            'Ú' => 'U', 'Û' => 'U', 'Ü' => 'U', 'Ý' => 'Y', 'Þ' => 'B', 'ß' => 'Ss', 'à' => 'a', 'á' => 'a', 'â' => 'a',
+            'ã' => 'a', 'ä' => 'a', 'å' => 'a', 'æ' => 'a', 'ç' => 'c',
+            'è' => 'e', 'é' => 'e', 'ê' => 'e', 'ë' => 'e', 'ì' => 'i', 'í' => 'i', 'î' => 'i', 'ï' => 'i', 'ð' => 'o',
+            'ñ' => 'n', 'ò' => 'o', 'ó' => 'o', 'ô' => 'o', 'õ' => 'o',
+            'ö' => 'o', 'ø' => 'o', 'ù' => 'u', 'ú' => 'u','ü' => 'u', 'û' => 'u', 'ý' => 'y', 'þ' => 'b', 'ÿ' => 'y', " " => "_",
+            'Š' => 'S', 'š' => 's', 'Ž' => 'Z', 'ž' => 'z', 'À' => 'A', 'Á' => 'A', 'Â' => 'A', 'Ã' => 'A', 'Ä' => 'A');
+    $string = strtr($string, $unwanted_array);
+}
+
+function maici_count_tokens($text) {
+    // Define a basic set of tokenization rules
+    $pattern = '/\w+|\s+|[^\w\s]/u';
+    preg_match_all($pattern, $text, $matches);
+
+    // Filter out empty elements
+    $tokens = array_filter($matches[0]);
+
+    // Count the tokens
+    $tokenCount = count($tokens);
+
+    return $tokenCount;
+}
+
+function maici_get_assistant_token_usage($message,$completion_message) {
+    $usage = new stdClass();
+    $usage->prompt_tokens = maici_count_tokens($message);
+    $usage->completion_tokens = maici_count_tokens($completion_message);
+    $usage->total_tokens = $usage->prompt_tokens + $usage->completion_tokens;
+    return $usage;
 }

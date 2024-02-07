@@ -6,6 +6,7 @@ export const init = (data) => {
     const blockId = data['blockId']
     const api_type = data['api_type']
     const persistConvo = data['persistConvo']
+    const usertokenvalidation = data['usertokenvalidation']
 
     // Initialize local data storage if necessary
     // If a thread ID exists for this block, make an API request to get existing messages
@@ -14,7 +15,7 @@ export const init = (data) => {
         if (chatData) {
             chatData = JSON.parse(chatData)
             if (chatData[blockId] && chatData[blockId]['threadId'] && persistConvo === "1") {
-                fetch(`${M.cfg.wwwroot}/mod/mod_maici/api/thread.php`,{
+                fetch(`${M.cfg.wwwroot}/mod/maici/api/thread.php`,{
                     method: 'POST',
                     body: JSON.stringify({
                             blockId: blockId,
@@ -43,19 +44,24 @@ export const init = (data) => {
         localStorage.setItem("block_openai_chat_data", JSON.stringify(chatData));
     }
 
-    document.querySelector('#openai_input').addEventListener('keyup', e => {
-        if (e.which === 13 && e.target.value !== "") {
-            addToChatLog('user', e.target.value)
-            createCompletion(e.target.value, blockId, api_type)
-            e.target.value = ''
+    document.querySelector('#openai_input').addEventListener('keyup', async (e) => {
+        if (e.which === 13 && e.target.value !== "" ) {
+            if(await checkUserTokenUsage(blockId, usertokenvalidation)){
+                addToChatLog('user', e.target.value)
+                createCompletion(e.target.value, blockId, api_type)
+                e.target.value = ''
+            }
         }
     })
-    document.querySelector('#go').addEventListener('click', e => {
+
+    document.querySelector('#go').addEventListener('click', async (e) => {
         const input = document.querySelector('#openai_input')
         if (input.value !== "") {
-            addToChatLog('user', input.value)
-            createCompletion(input.value, blockId, api_type)
-            input.value = ''
+            if(await checkUserTokenUsage(blockId, usertokenvalidation)){
+                addToChatLog('user', input.value)
+                createCompletion(input.value, blockId, api_type)
+                input.value = ''
+            }
         }
     })
 
@@ -153,7 +159,7 @@ const createCompletion = (message, blockId, api_type) => {
     document.querySelector('#openai_input').blur()
     addToChatLog('bot loading', '...');
 
-    fetch(`${M.cfg.wwwroot}/mod/mod_maici/api/completion.php`, {
+    fetch(`${M.cfg.wwwroot}/mod/maici/api/completion.php`, {
         method: 'POST',
         body: JSON.stringify({
             message: message,
@@ -212,4 +218,42 @@ const buildTranscript = () => {
     })
 
     return transcript
+}
+
+/**
+ * Check user token usage
+ * @return {boolean}
+ */
+const checkUserTokenUsage = async function(blockId, usertokenvalidation) {
+    return new Promise((resolve, reject) => {
+        if (usertokenvalidation) {
+            require(['jquery','core/ajax','core/notification','core/str', 'core/pending'], function($,Ajax,Notification,str,Pending) {
+
+                var pendingPromise = new Pending('mod_maici/lib:init');
+
+                Ajax.call([{
+                    methodname: 'mod_maici_validate_user_tokens',
+                    args: {cmid: blockId}
+                }])[0].then(function (response) {
+                    console.log(response);
+                    if(response['usertokenvalidation'] === false){
+                        $("#maici_container").addClass("overlay");
+
+                        Notification.alert(str.get_string('chatwindowinfo','mod_maici'),
+                            str.get_string('outoftokens','mod_maici'),
+                            str.get_string('chatwindowbutton','mod_maici'));
+
+                        resolve(false);
+                    } else {
+                        resolve(true);
+                    }
+                }).always(pendingPromise.resolve)
+                    .catch((error) => {
+                        reject(error);
+                    });
+            });
+        } else {
+            resolve(true);
+        }
+    });
 }

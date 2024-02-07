@@ -63,8 +63,9 @@ class aichat implements templatable, renderable {
     public function export_for_template($output) {
         global $PAGE;
         $data = new stdClass();
+        $apikey = $this->moduleinstance->apikey ?:get_config('mod_maici','apikey');
 
-        if(empty($this->moduleinstance->apikey)) {
+        if(empty($apikey)) {
             $data->displayactivity = false;
             $data->info = get_string('modulenotset','mod_maici');
         }else{
@@ -72,7 +73,8 @@ class aichat implements templatable, renderable {
                 $PAGE->requires->js_call_amd('mod_maici/lib', 'init', [[
                     'blockId' => $this->cmid,
                     'api_type' => $this->moduleinstance->apitype,
-                    'persistConvo' => $this->moduleinstance->persistconvo
+                    'persistConvo' => $this->moduleinstance->persistconvo,
+                    'usertokenvalidation' => true
                 ]]);
 
                 $data->displayactivity = true;
@@ -80,6 +82,7 @@ class aichat implements templatable, renderable {
                 $data->intro = $this->intro;
                 $data->username = $this->moduleinstance->username;
                 $data->assistantname = $this->moduleinstance->assistantname;
+                $data->conversation_logging = $this->moduleinstance->conversation_logging ? get_string('conversation_logging_info','mod_maici') : '';
             }else{
                 $data->displayactivity = false;
                 $data->info = get_string('outoftokens','mod_maici');
@@ -91,10 +94,6 @@ class aichat implements templatable, renderable {
 
     public function maici_validate_user() {
         global $DB,$USER;
-
-        if($this->moduleinstance->apitype == 'assistant'){
-            return true;
-        }
 
         // Instance limit for a day
         $date = new \DateTime();
