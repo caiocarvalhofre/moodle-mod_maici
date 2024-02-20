@@ -36,10 +36,23 @@ function xmldb_maici_upgrade($oldversion) {
 
     $dbman = $DB->get_manager();
 
-    // For further information please read {@link https://docs.moodle.org/dev/Upgrade_API}.
-    //
-    // You will also have to create the db/install.xml file by using the XMLDB Editor.
-    // Documentation for the XMLDB Editor can be found at {@link https://docs.moodle.org/dev/XMLDB_editor}.
+    if ($oldversion < 2024022000) {
+        $table = new xmldb_table('maici');
+        if ($dbman->field_exists($table, 'prompt')) {
+            $field = new xmldb_field('prompt');
+            $field->set_attributes(XMLDB_TYPE_TEXT, 'big', null, false, null, null);
+            $dbman->change_field_type($table, $field);
+        }
+
+        if ($dbman->field_exists($table, 'sourceoftruth')) {
+            $field = new xmldb_field('sourceoftruth');
+            $field->set_attributes(XMLDB_TYPE_TEXT, 'big', null, false, null, null);
+            $dbman->change_field_type($table, $field);
+        }
+
+        // maici savepoint reached.
+        upgrade_mod_savepoint(true, 2024022000, 'maici');
+    }
 
     return true;
 }
