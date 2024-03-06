@@ -107,6 +107,7 @@ function maici_add_instance($moduleinstance, $mform = null) {
     global $DB;
 
     $moduleinstance->timecreated = time();
+    $moduleinstance->instructiontokens = maici_count_tokens($moduleinstance->sourceoftruth) + maici_count_tokens($moduleinstance->prompt);
 
     $id = $DB->insert_record('maici', $moduleinstance);
     $moduleinstance->id = $id;
@@ -156,6 +157,7 @@ function maici_update_instance($moduleinstance, $mform = null) {
 
     $moduleinstance->timemodified = time();
     $moduleinstance->id = $moduleinstance->instance;
+    $moduleinstance->instructiontokens = maici_count_tokens($moduleinstance->sourceoftruth) + maici_count_tokens($moduleinstance->prompt);
 
     $DB->update_record("maici", $moduleinstance);
 
@@ -382,5 +384,22 @@ function maici_get_assistant_token_usage($message,$completion_message) {
     $usage->prompt_tokens = maici_count_tokens($message);
     $usage->completion_tokens = maici_count_tokens($completion_message);
     $usage->total_tokens = $usage->prompt_tokens + $usage->completion_tokens;
+    return $usage;
+}
+
+function maici_get_chat_token_usage($usage, $instructiontokens) {
+
+    if($usage->prompt_tokens < $instructiontokens){
+        $usage->prompt_tokens = 0;
+    }else{
+        $usage->prompt_tokens -= $instructiontokens;
+    }
+
+    if($usage->total_tokens < $instructiontokens){
+        $usage->total_tokens = 0;
+    }else{
+        $usage->total_tokens -= $instructiontokens;
+    }
+
     return $usage;
 }

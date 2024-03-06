@@ -47,6 +47,10 @@ class aichat implements templatable, renderable {
     public $cmid;
 
     public $intro;
+    /**
+     * @var \lang_string|string
+     */
+    public $tokenlimitinfo;
 
     public function __construct($moduleinstance,$cmid,$intro=null) {
         $this->moduleinstance = $moduleinstance;
@@ -61,7 +65,7 @@ class aichat implements templatable, renderable {
      * @return stdClass - Flat list of exported data.
      */
     public function export_for_template($output) {
-        global $PAGE;
+        global $PAGE,$OUTPUT;
         $data = new stdClass();
         $apikey = $this->moduleinstance->apikey ?:get_config('mod_maici','apikey');
 
@@ -82,10 +86,10 @@ class aichat implements templatable, renderable {
                 $data->intro = $this->intro;
                 $data->username = $this->moduleinstance->username;
                 $data->assistantname = $this->moduleinstance->assistantname;
-                $data->conversation_logging = $this->moduleinstance->conversation_logging ? get_string('conversation_logging_info','mod_maici') : '';
+                $data->conversation_logging = $this->moduleinstance->conversation_logging ? $OUTPUT->container(get_string('conversation_logging_info','mod_maici'), 'alert alert-info') : '';
             }else{
                 $data->displayactivity = false;
-                $data->info = get_string('outoftokens','mod_maici');
+                $data->info = $OUTPUT->container($this->tokenlimitinfo, 'alert alert-warning');
             }
         }
 
@@ -95,7 +99,6 @@ class aichat implements templatable, renderable {
     public function maici_validate_user() {
         global $DB,$USER;
 
-        // Instance limit for a day
         $date = new \DateTime();
         $date->setTimestamp(time());
         $date->setTime(0, 0, 0);
@@ -109,53 +112,66 @@ class aichat implements templatable, renderable {
         $params['startoftheday'] = $startOfDayTimestamp;
         $params['endoftheday'] = $endOfDayTimestamp;
 
-        $select = "SELECT SUM(chl.total_tokens) as totaltokens";
-        $fields = " ";
-        $from = " FROM {maici_logs} chl ";
-        $join = "  ";
-        $where = " WHERE chl.cmid=:cmid AND chl.timecreated < :endoftheday AND chl.timecreated > :startoftheday ";
-        $groupby = "  ";
+        // Instance limit for a day
+        if($this->moduleinstance->maxperday){
+            $select = "SELECT SUM(chl.total_tokens) as totaltokens";
+            $fields = " ";
+            $from = " FROM {maici_logs} chl ";
+            $join = "  ";
+            $where = " WHERE chl.cmid=:cmid AND chl.timecreated < :endoftheday AND chl.timecreated > :startoftheday ";
+            $groupby = "  ";
 
-        $sql = $select . $fields . $from . $join . $where . $groupby;
+            $sql = $select . $fields . $from . $join . $where . $groupby;
 
-        if(($total_tokens = $DB->get_record_sql($sql,$params)->totaltokens) && $total_tokens >= $this->moduleinstance->maxperday){
-            return false;
+            if(($total_tokens = $DB->get_record_sql($sql,$params)->totaltokens) && $total_tokens >= $this->moduleinstance->maxperday){
+                $a = (object)['maxperday' => $this->moduleinstance->maxperday, 'totaltokens' => $total_tokens];
+                $this->tokenlimitinfo = get_string('daytokenlimitinfo','maici',$a);
+                return false;
+            }
         }
 
         //instance limit for user for a day
-        $params['userid'] = $USER->id;
-        $where .= " AND userid=:userid ";
-        $sql = $select . $fields . $from . $join . $where . $groupby;
+        if($this->moduleinstance->maxperuser){
+            $params['userid'] = $USER->id;
+            $where .= " AND userid=:userid ";
+            $sql = $select . $fields . $from . $join . $where . $groupby;
 
-        if(($total_tokens = $DB->get_record_sql($sql,$params)->totaltokens) && $total_tokens >= $this->moduleinstance->maxperuser){
-            return false;
+            if(($total_tokens = $DB->get_record_sql($sql,$params)->totaltokens) && $total_tokens >= $this->moduleinstance->maxperuser){
+                $a = (object)['maxperuser' => $this->moduleinstance->maxperuser, 'totaltokens' => $total_tokens];
+                $this->tokenlimitinfo = get_string('usertokenlimitinfo','maici',$a);
+                return false;
+            }
         }
 
         //instance limit for month
-        $date = new \DateTime();
-        $date->setTimestamp(time());
-        $date->modify('first day of this month');
-        $firstDayOfMonth = $date->getTimestamp();
+        if($this->moduleinstance->maxpermonth){
+            $date = new \DateTime();
+            $date->setTimestamp(time());
+            $date->modify('first day of this month');
+            $firstDayOfMonth = $date->getTimestamp();
 
-        $date->modify('last day of this month');
-        $lastDayOfMonth = $date->getTimestamp();
+            $date->modify('last day of this month');
+            $lastDayOfMonth = $date->getTimestamp();
 
-        $params = [];
-        $params['cmid'] = $this->cmid;
-        $params['firstdayofmonth'] = $firstDayOfMonth;
-        $params['lastdayofmonth'] = $lastDayOfMonth;
+            $params = [];
+            $params['cmid'] = $this->cmid;
+            $params['firstdayofmonth'] = $firstDayOfMonth;
+            $params['lastdayofmonth'] = $lastDayOfMonth;
 
-        $select = "SELECT SUM(chl.total_tokens) as totaltokens";
-        $fields = " ";
-        $from = " FROM {maici_logs} chl ";
-        $join = "  ";
-        $where = " WHERE chl.cmid=:cmid AND chl.timecreated < :lastdayofmonth AND chl.timecreated > :firstdayofmonth ";
-        $groupby = "  ";
+            $select = "SELECT SUM(chl.total_tokens) as totaltokens";
+            $fields = " ";
+            $from = " FROM {maici_logs} chl ";
+            $join = "  ";
+            $where = " WHERE chl.cmid=:cmid AND chl.timecreated < :lastdayofmonth AND chl.timecreated > :firstdayofmonth ";
+            $groupby = "  ";
 
-        $sql = $select . $fields . $from . $join . $where . $groupby;
+            $sql = $select . $fields . $from . $join . $where . $groupby;
 
-        if(($total_tokens = $DB->get_record_sql($sql,$params)->totaltokens) && $total_tokens >= $this->moduleinstance->maxpermonth){
-            return false;
+            if(($total_tokens = $DB->get_record_sql($sql,$params)->totaltokens) && $total_tokens >= $this->moduleinstance->maxpermonth){
+                $a = (object)['maxpermonth' => $this->moduleinstance->maxpermonth, 'totaltokens' => $total_tokens];
+                $this->tokenlimitinfo = get_string('monthtokenlimitinfo','maici',$a);
+                return false;
+            }
         }
 
         return true;

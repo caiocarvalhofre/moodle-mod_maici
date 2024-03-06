@@ -84,7 +84,8 @@ if($moduleinstance->apitype=='chat'){
     $completion_message = $message_response["message"];
     $message_response = json_encode($message_response);
 
-    $completion->log_conversation($completion_message, $moduleinstance, $response->usage);
+    $usage = maici_get_chat_token_usage($response->usage,$moduleinstance->instructiontokens);
+    $completion->log_conversation($completion_message, $moduleinstance, $usage);
 
     echo $message_response;
 }else{

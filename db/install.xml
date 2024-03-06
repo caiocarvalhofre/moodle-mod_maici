@@ -26,6 +26,7 @@
           <FIELD NAME="maxpermonth" TYPE="int" LENGTH="10" NOTNULL="false" DEFAULT="0" COMMENT="Max number of tokens per calendar month for this instance."/><!-- CHAT -->
           <FIELD NAME="prompt" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The name of the activity module instance"/><!-- CHAT -->
           <FIELD NAME="sourceoftruth" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The name of the activity module instance"/><!-- CHAT -->
+          <FIELD NAME="instructiontokens" TYPE="int" LENGTH="10" NOTNULL="false" DEFAULT="0" COMMENT="Max number of tokens per day for this instance."/>
           <FIELD NAME="assistantfile" TYPE="int" LENGTH="11" NOTNULL="false" UNSIGNED="false" DEFAULT="0" SEQUENCE="false"/>
           <FIELD NAME="assistantfileid" TYPE="char" LENGTH="255" NOTNULL="false" UNSIGNED="false" DEFAULT="" SEQUENCE="false"/>
           <FIELD NAME="conversation_logging" TYPE="int" DEFAULT="0" LENGTH="1" NOTNULL="false" COMMENT="Flag for conversation logging for this instance."/>

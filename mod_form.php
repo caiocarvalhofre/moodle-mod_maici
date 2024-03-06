@@ -134,6 +134,17 @@ class mod_maici_mod_form extends moodleform_mod {
         $mform->setType('sourceoftruth', PARAM_TEXT);
         $mform->addHelpButton('sourceoftruth', 'sourceoftruth', 'mod_maici');
 
+        if(isset($this->current->id) && !empty($this->current->id)){
+            global $DB;
+            $instance = $DB->get_record('maici',['id'=>$this->current->id]);
+            $apikey = $instance->apikey;
+            if($tokens = maici_count_tokens($instance->sourceoftruth) + maici_count_tokens($instance->prompt)){
+                $mform->addElement('html', get_string('tokenweight','mod_maici',$tokens).'</br></br>');
+            }
+        }else{
+            $apikey = null;
+        }
+
         $mform->hideIf('chatheader','apitype','nq','chat');
         $mform->hideIf('model','apitype','nq','chat');
         $mform->hideIf('maxperday','apitype','nq','chat');
@@ -146,13 +157,6 @@ class mod_maici_mod_form extends moodleform_mod {
         $mform->addElement('header', 'assistantheader', get_string('assistant','mod_maici'));
 
         //$mform->addElement('html', get_string('setapikey','mod_maici').'</br></br>');
-
-        if(isset($this->current->id) && !empty($this->current->id)){
-            global $DB;
-            $apikey = $DB->get_record('maici',['id'=>$this->current->id])->apikey;
-        }else{
-            $apikey = null;
-        }
 
         if(($assistants = maici_fetch_assistants_array($apikey)) || $defaulassistants){
             $mform->addElement('select', 'assistant', get_string('assistant', 'mod_maici'),$assistants?:$defaulassistants);
