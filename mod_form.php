@@ -147,9 +147,6 @@ class mod_maici_mod_form extends moodleform_mod {
 
         $mform->hideIf('chatheader','apitype','nq','chat');
         $mform->hideIf('model','apitype','nq','chat');
-        $mform->hideIf('maxperday','apitype','nq','chat');
-        $mform->hideIf('maxperuser','apitype','nq','chat');
-        $mform->hideIf('maxpermonth','apitype','nq','chat');
         $mform->hideIf('prompt','apitype','nq','chat');
         $mform->hideIf('sourceoftruth','apitype','nq','chat');
 

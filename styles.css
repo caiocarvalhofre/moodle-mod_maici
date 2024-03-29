@@ -88,6 +88,10 @@
     background: var(--blue);
     color: var(--white);
 }
+.openai_message.alert {
+    background: var(--red);
+    color: var(--white);
+}
  .openai_message.loading {
     animation: block_openai_chat_thinking 1s ease infinite;
 }

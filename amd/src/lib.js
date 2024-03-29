@@ -174,7 +174,16 @@ const createCompletion = (message, blockId, api_type) => {
         document.querySelector('#control_bar').classList.remove('disabled')
 
         if (!response.ok) {
-            throw Error(response.statusText)
+            return response.json().then(error => {
+                // Prepare error message
+                let errorMessage = '';
+                Object.keys(error.error).forEach(attr => {
+                    errorMessage += `${attr}: ${error.error[attr]}\n`;
+                });
+                // Add error message to chat log
+                addToChatLog('alert', errorMessage);
+                throw Error(error.error.message);
+            });
         } else {
             return response.json()
         }
