@@ -25,6 +25,6 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'mod_maici';
-$plugin->release = '1.2';
-$plugin->version = 2024030500;
+$plugin->release = '1.3';
+$plugin->version = 2024032900;
 $plugin->requires = 2022112800;
