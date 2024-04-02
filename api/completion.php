@@ -73,7 +73,7 @@ $engine_class='\mod_maici\completion\\'.$moduleinstance->apitype;
 $completion = new $engine_class(...[$moduleinstance->model, $message, $history, $block_settings, $thread_id]);
 $response = $completion->create_completion($PAGE->context);
 
-if(property_exists($response,'error')){
+if(is_object($response) && property_exists($response,'error')){
     // Return error response
     http_response_code(400); // Bad request
     echo json_encode(array("error" => $response->error));

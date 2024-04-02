@@ -120,7 +120,7 @@ class assistant extends \mod_maici\completion {
         $response = json_decode($response);
 
         if (isset($response->error)) {
-            throw new \Exception($response->error->message);
+            return $response;
         }
 
         $run_id = $response->id;
