@@ -27,6 +27,7 @@ use \mod_maici\completion;
 require_once('../../../config.php');
 require_once($CFG->libdir . '/filelib.php');
 require_once($CFG->dirroot . '/mod/maici/lib.php');
+require_once($CFG->dirroot . '/mod/maici/locallib.php');
 
 global $DB, $PAGE;
 

@@ -13,7 +13,6 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
-use mod_maici\assistant_file;
 
 /**
  * Library of interface functions and constants.
@@ -35,6 +34,7 @@ function maici_supports($feature) {
         case FEATURE_COMPLETION_TRACKS_VIEWS: return true;
         case FEATURE_COMPLETION_HAS_RULES:  return true;
         case FEATURE_SHOW_DESCRIPTION: return true;
+        case FEATURE_MOD_PURPOSE: return MOD_PURPOSE_INTERFACE;
         default: return null;
     }
 }
@@ -107,7 +107,15 @@ function maici_add_instance($moduleinstance, $mform = null) {
     global $DB;
 
     $moduleinstance->timecreated = time();
-    $moduleinstance->instructiontokens = maici_count_tokens($moduleinstance->sourceoftruth) + maici_count_tokens($moduleinstance->prompt);
+    $sourceoftruth = '';
+    $prompt = '';
+    if(property_exists($moduleinstance,'sourceoftruth')){
+        $sourceoftruth = $moduleinstance->sourceoftruth;
+    }
+    if(property_exists($moduleinstance,'prompt')){
+        $prompt = $moduleinstance->prompt;
+    }
+    $moduleinstance->instructiontokens = maici_count_tokens($sourceoftruth) + maici_count_tokens($prompt);
 
     $id = $DB->insert_record('maici', $moduleinstance);
     $moduleinstance->id = $id;
@@ -255,6 +263,14 @@ function maici_extend_settings_navigation($settingsnav, $maicinode) {
     }
 }
 
+/**
+ * Fetch list of assistants using provided OpenAI APIkey
+ *
+ * @param $apikey
+ * @return array|false
+ * @throws coding_exception
+ * @throws dml_exception
+ */
 function maici_fetch_assistants_array($apikey = null) {
     global $DB;
 
@@ -286,6 +302,11 @@ function maici_fetch_assistants_array($apikey = null) {
     return $assistant_array;
 }
 
+/**
+ * Get list of OpenAI models
+ *
+ * @return array[]
+ */
 function maici_get_models() {
     return [
         "models" => [
@@ -327,79 +348,22 @@ function maici_get_editor_options($context) {
 }
 
 /**
- * Formats activity intro text
+ * Get token usage of text
  *
- * @param string $module name of module
- * @param object $activity instance of activity
- * @param int $cmid course module id
- * @param bool $filter filter resulting html text
- * @return string
+ * @param $text
+ * @return int
  */
-function maici_format_instructions($moduleinstance, $cmid, $filter=true) {
-    global $CFG;
-    require_once("$CFG->libdir/filelib.php");
-    $context = context_module::instance($cmid);
-    $options = array('noclean' => true, 'para' => false, 'filter' => $filter, 'context' => $context, 'overflowdiv' => true);
-    $instructions = file_rewrite_pluginfile_urls($moduleinstance->instructions_submit, 'pluginfile.php', $context->id, 'mod_maici', 'intro', null);
-    return trim(format_text($instructions, $moduleinstance->instructionsformat, $options, null));
-}
-
-/**
- * Sanitize string for use as filename
- *
- * @param $string
- * @return void
- */
-function maici_sanitize_filename(&$string) {
-    $unwanted_array =
-        array( "/" => "_",
-            'Å' => 'A', 'Æ' => 'A', 'Ç' => 'C', 'È' => 'E', 'É' => 'E',
-            'Ê' => 'E', 'Ë' => 'E', 'Ì' => 'I', 'Í' => 'I', 'Î' => 'I', 'Ï' => 'I', 'Ñ' => 'N', 'Ò' => 'O', 'Ó' => 'O',
-            'Ô' => 'O', 'Õ' => 'O', 'Ö' => 'O', 'Ø' => 'O', 'Ù' => 'U','Ť'=>'T',
-            'Ú' => 'U', 'Û' => 'U', 'Ü' => 'U', 'Ý' => 'Y', 'Þ' => 'B', 'ß' => 'Ss', 'à' => 'a', 'á' => 'a', 'â' => 'a',
-            'ã' => 'a', 'ä' => 'a', 'å' => 'a', 'æ' => 'a', 'ç' => 'c',
-            'è' => 'e', 'é' => 'e', 'ê' => 'e', 'ë' => 'e', 'ì' => 'i', 'í' => 'i', 'î' => 'i', 'ï' => 'i', 'ð' => 'o',
-            'ñ' => 'n', 'ò' => 'o', 'ó' => 'o', 'ô' => 'o', 'õ' => 'o',
-            'ö' => 'o', 'ø' => 'o', 'ù' => 'u', 'ú' => 'u','ü' => 'u', 'û' => 'u', 'ý' => 'y', 'þ' => 'b', 'ÿ' => 'y', " " => "_",
-            'Š' => 'S', 'š' => 's', 'Ž' => 'Z', 'ž' => 'z', 'À' => 'A', 'Á' => 'A', 'Â' => 'A', 'Ã' => 'A', 'Ä' => 'A');
-    $string = strtr($string, $unwanted_array);
-}
-
 function maici_count_tokens($text) {
-    // Define a basic set of tokenization rules
-    $pattern = '/\w+|\s+|[^\w\s]/u';
-    preg_match_all($pattern, $text, $matches);
+    $tokenCount = 0;
 
-    // Filter out empty elements
-    $tokens = array_filter($matches[0]);
+    if (!empty($text)) {
+        $pattern = '/\w+|\s+|[^\w\s]/u';
+        preg_match_all($pattern, $text, $matches);
 
-    // Count the tokens
-    $tokenCount = count($tokens);
+        $tokens = array_filter($matches[0]);
+        $tokenCount = count($tokens);
+    }
 
     return $tokenCount;
 }
 
-function maici_get_assistant_token_usage($message,$completion_message) {
-    $usage = new stdClass();
-    $usage->prompt_tokens = maici_count_tokens($message);
-    $usage->completion_tokens = maici_count_tokens($completion_message);
-    $usage->total_tokens = $usage->prompt_tokens + $usage->completion_tokens;
-    return $usage;
-}
-
-function maici_get_chat_token_usage($usage, $instructiontokens) {
-
-    if($usage->prompt_tokens < $instructiontokens){
-        $usage->prompt_tokens = 0;
-    }else{
-        $usage->prompt_tokens -= $instructiontokens;
-    }
-
-    if($usage->total_tokens < $instructiontokens){
-        $usage->total_tokens = 0;
-    }else{
-        $usage->total_tokens -= $instructiontokens;
-    }
-
-    return $usage;
-}

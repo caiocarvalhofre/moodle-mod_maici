@@ -24,7 +24,6 @@
 
 namespace mod_maici\completion;
 
-use mod_maici\completion;
 defined('MOODLE_INTERNAL') || die;
 
 class chat extends \mod_maici\completion {

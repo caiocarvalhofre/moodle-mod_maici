@@ -25,6 +25,7 @@
 
 require_once(dirname(__FILE__) . '/../../config.php');
 require_once($CFG->dirroot . '/mod/maici/lib.php');
+require_once($CFG->dirroot . '/mod/maici/locallib.php');
 require_once($CFG->dirroot . '/lib/tablelib.php');
 
 $id = required_param('id', PARAM_INT);

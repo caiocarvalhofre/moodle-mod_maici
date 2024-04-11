@@ -79,7 +79,7 @@ class mod_maici_mod_form extends moodleform_mod {
             $mform->addElement('html', get_string('defaultapikey','mod_maici').'</br></br>');
         }
 
-        $mform->addElement('text', 'apikey', get_string('apikey', 'mod_maici'),array('size'=>57));
+        $mform->addElement('password', 'apikey', get_string('apikey', 'mod_maici'),array('size'=>45));
         $mform->setType('apikey', PARAM_TEXT);
         $mform->addHelpButton('apikey', 'apikey', 'mod_maici');
         if(!$defaulassistants){
@@ -117,9 +117,9 @@ class mod_maici_mod_form extends moodleform_mod {
 
         $mform->addElement('select', 'apitype', get_string('apitype', 'mod_maici'), ['chat' => 'chat', 'assistant' => 'assistant']);
 
-        /////------------CHAT
-        $mform->addElement('header', 'chatheader', get_string('chatsett','mod_maici'));
+        $mform->addElement('header', 'aisettings', get_string('aisett','mod_maici'));
 
+        /////------------CHAT
         $models = maici_get_models()['models'];
         $mform->addElement('select', 'model', get_string('model', 'mod_maici'),$models);
         $mform->addHelpButton('model', 'model', 'mod_maici');
@@ -145,16 +145,11 @@ class mod_maici_mod_form extends moodleform_mod {
             $apikey = null;
         }
 
-        $mform->hideIf('chatheader','apitype','nq','chat');
         $mform->hideIf('model','apitype','nq','chat');
         $mform->hideIf('prompt','apitype','nq','chat');
         $mform->hideIf('sourceoftruth','apitype','nq','chat');
 
         /////------------Assistant
-        $mform->addElement('header', 'assistantheader', get_string('assistant','mod_maici'));
-
-        //$mform->addElement('html', get_string('setapikey','mod_maici').'</br></br>');
-
         if(($assistants = maici_fetch_assistants_array($apikey)) || $defaulassistants){
             $mform->addElement('select', 'assistant', get_string('assistant', 'mod_maici'),$assistants?:$defaulassistants);
             $mform->addHelpButton('assistant', 'assistant', 'mod_maici');
@@ -179,8 +174,7 @@ class mod_maici_mod_form extends moodleform_mod {
         $mform->hideIf('assistantfile','apitype','eq','chat');
         $mform->hideIf('persistconvo','apitype','eq','chat');
 
-        $mform->setExpanded('chatheader');
-        $mform->setExpanded('assistantheader');
+        $mform->setExpanded('aisettings');
         // Add standard elements.
         $this->standard_coursemodule_elements();
 

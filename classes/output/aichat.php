@@ -33,6 +33,8 @@ use renderable;
 use templatable;
 use stdClass;
 
+require_once($CFG->dirroot . '/mod/maici/locallib.php');
+
 /**
  * Grading app renderable.
  *

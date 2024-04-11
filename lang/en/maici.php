@@ -74,6 +74,7 @@ $string['select'] = 'Select';
 $string['apitype'] = 'API type';
 $string['apitype_help'] = 'The API type that the plugin should use';
 $string['chat'] = 'Chat';
+$string['aisett'] = 'AI settings';
 $string['chatsett'] = 'Chat settings';
 $string['assistantsett'] = 'Assistant settings';
 $string['assistant'] = 'Assistant';

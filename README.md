@@ -12,6 +12,10 @@ Additionally, our plugin supports two types of completion criteria which can be 
 1. Student must view activity
 2. Student must complete a number of exchanges
 
+## Version support ##
+
+This plugin has been developed to work on Moodle release 4.1.1+
+
 ## Installing via uploaded ZIP file ##
 
 1. Log in to your Moodle site as an admin and go to _Site administration >
@@ -34,6 +38,22 @@ Alternatively, you can run
     $ php admin/cli/upgrade.php
 
 to complete the installation from the command line.
+
+## Global configuration for MAICI ##
+
+To access the global configuration for the MAICI plugin, navigate to:
+
+Site administration > Plugins > Activity Modules > MAICI
+
+The global configurations:
+
+-  Instance token limit: Here you can limit maximum tokens that teacher can set in plugin instance. Max token per day, max token per user, etc.
+
+
+-  Maximum token: The maximum number of token to generate. Cannot be greater that maxtoken set in OpenAI account. Requests can use up to 2,048 or 4,000 tokens shared between prompt and completion. The exact limit varies by model. (One token is roughly 4 characters for normal English text)
+
+
+-  Open AI api key: Default api key for OpenAI that will be used for each instance. Teacher can still specify their own OpenAI key.
 
 ## License ##
 

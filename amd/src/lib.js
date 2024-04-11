@@ -244,7 +244,6 @@ const checkUserTokenUsage = async function(blockId, usertokenvalidation) {
                     methodname: 'mod_maici_validate_user_tokens',
                     args: {cmid: blockId}
                 }])[0].then(function (response) {
-                    console.log(response);
                     if(response['usertokenvalidation'] === false){
                         $("#maici_container").addClass("overlay");
 
