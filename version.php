@@ -26,6 +26,6 @@ defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'mod_maici';
 $plugin->release = '1.4';
-$plugin->version = 2024032900;
+$plugin->version = 2024041900;
 $plugin->requires = 2022112800; // Moodle 4.1.0 and up.
 $plugin->maturity  = MATURITY_STABLE;
