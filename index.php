@@ -18,7 +18,8 @@
  * Display information about all the mod_maici modules in the requested course.
  *
  * @package     mod_maici
- * @copyright   
+ * @author Tay Moss <imc@tucc.ca>
+ * @copyright 2024 CHURCHx at TUCC <https://churchx.ca>   
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 

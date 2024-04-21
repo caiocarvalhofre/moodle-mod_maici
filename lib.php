@@ -18,7 +18,8 @@
  * Library of interface functions and constants.
  *
  * @package     mod_maici
- * @copyright   
+ * @author Tay Moss <imc@tucc.ca>
+ * @copyright 2024 CHURCHx at TUCC <https://churchx.ca>   
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -283,7 +284,7 @@ function maici_fetch_assistants_array($apikey = null) {
         'CURLOPT_HTTPHEADER' => array(
             'Authorization: Bearer ' . $apikey,
             'Content-Type: application/json',
-            'OpenAI-Beta: assistants=v1'
+            'OpenAI-Beta: assistants=v2'
         ),
     ));
 

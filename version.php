@@ -18,7 +18,8 @@
  * Plugin version and other meta-data are defined here.
  *
  * @package     mod_maici
- * @copyright   
+ * @author Tay Moss <imc@tucc.ca>
+ * @copyright 2024 CHURCHx at TUCC <https://churchx.ca>   
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -26,6 +27,6 @@ defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'mod_maici';
 $plugin->release = '1.4';
-$plugin->version = 2024041900;
+$plugin->version = 2024042100;
 $plugin->requires = 2022112800; // Moodle 4.1.0 and up.
 $plugin->maturity  = MATURITY_STABLE;

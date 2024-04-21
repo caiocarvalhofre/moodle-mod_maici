@@ -19,8 +19,8 @@
  *
  * @package     mod_maici
  * @category    admin
- * @author
- * @copyright
+* @author Tay Moss <imc@tucc.ca>
+ * @copyright 2024 CHURCHx at TUCC <https://churchx.ca>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -45,7 +45,8 @@ require_once($CFG->dirroot . '/user/lib.php');
  * Class for the displaying the table.
  *
  * @package     report_logging
- * @copyright
+ * @author Tay Moss <imc@tucc.ca>
+ * @copyright 2024 CHURCHx at TUCC <https://churchx.ca>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class report_logging extends \table_sql {

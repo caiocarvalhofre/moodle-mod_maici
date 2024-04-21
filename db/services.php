@@ -18,7 +18,8 @@
  * Prints an instance of mod_maici.
  *
  * @package     mod_maici
- * @copyright
+ * @author Tay Moss <imc@tucc.ca>
+ * @copyright 2024 CHURCHx at TUCC <https://churchx.ca>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 

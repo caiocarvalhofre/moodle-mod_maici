@@ -18,7 +18,8 @@
  * Privacy API Provider
  *
  * @package    mod_maici
- * @copyright
+ * @author Tay Moss <imc@tucc.ca>
+ * @copyright 2024 CHURCHx at TUCC <https://churchx.ca>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 

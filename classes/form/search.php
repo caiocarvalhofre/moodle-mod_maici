@@ -20,8 +20,8 @@
  *
  * @package     mod_maici
  * @category    admin
- * @author
- * @copyright
+ * @author Tay Moss <imc@tucc.ca>
+ * @copyright 2024 CHURCHx at TUCC <https://churchx.ca>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -37,8 +37,8 @@ require_once($CFG->libdir . '/formslib.php');
  * Report search form class.
  *
  * @package     mod_maici
- * @author
- * @copyright
+* @author Tay Moss <imc@tucc.ca>
+ * @copyright 2024 CHURCHx at TUCC <https://churchx.ca>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class search extends \moodleform {

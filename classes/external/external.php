@@ -18,8 +18,8 @@
  * External Class
  *
  * @package
- * @author      <>
- * @copyright
+ * @author Tay Moss <imc@tucc.ca>
+ * @copyright 2024 CHURCHx at TUCC <https://churchx.ca>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 namespace mod_maici\external;

@@ -19,7 +19,8 @@
  *
  * @package     mod_maici
  * @category    string
- * @copyright   
+ * @author Tay Moss <imc@tucc.ca>
+ * @copyright 2024 CHURCHx at TUCC <https://churchx.ca>   
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 

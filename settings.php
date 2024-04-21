@@ -19,7 +19,8 @@
  *
  * @package     mod_maici
  * @category    admin
- * @copyright   
+ * @author Tay Moss <imc@tucc.ca>
+ * @copyright 2024 CHURCHx at TUCC <https://churchx.ca>   
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -28,7 +29,6 @@ defined('MOODLE_INTERNAL') || die();
 
 if ($ADMIN->fulltree) {
 
-    $settings = new admin_settingpage('mod_maici_settings', new lang_string('pluginname', 'mod_maici'));
     $settings->add(new admin_setting_configtext('mod_maici/maxtokenslimit', get_string('maxtokenslimit', 'mod_maici'),
         get_string('maxtokenslimit_help', 'maici'), 3000, PARAM_INT));
 
