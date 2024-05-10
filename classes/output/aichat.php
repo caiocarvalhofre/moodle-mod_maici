@@ -114,8 +114,13 @@ class aichat implements templatable, renderable {
         $params['startoftheday'] = $startOfDayTimestamp;
         $params['endoftheday'] = $endOfDayTimestamp;
 
+        $maxtokens = get_config('mod_maici', 'maxtokenslimit');
+        $maxperday = $this->moduleinstance->maxperday ?: $maxtokens;
+        $maxperuser = $this->moduleinstance->maxperuser ?: $maxtokens;
+        $maxpermonth = $this->moduleinstance->maxpermonth ?: $maxtokens;
+
         // Instance limit for a day
-        if($this->moduleinstance->maxperday){
+        if($maxperday){
             $select = "SELECT SUM(chl.total_tokens) as totaltokens";
             $fields = " ";
             $from = " FROM {maici_logs} chl ";
@@ -125,28 +130,28 @@ class aichat implements templatable, renderable {
 
             $sql = $select . $fields . $from . $join . $where . $groupby;
 
-            if(($total_tokens = $DB->get_record_sql($sql,$params)->totaltokens) && $total_tokens >= $this->moduleinstance->maxperday){
-                $a = (object)['maxperday' => $this->moduleinstance->maxperday, 'totaltokens' => $total_tokens];
+            if(($total_tokens = $DB->get_record_sql($sql,$params)->totaltokens) && $total_tokens >= $maxperday){
+                $a = (object)['maxperday' => $maxperday, 'totaltokens' => $total_tokens];
                 $this->tokenlimitinfo = get_string('daytokenlimitinfo','maici',$a);
                 return false;
             }
         }
 
         //instance limit for user for a day
-        if($this->moduleinstance->maxperuser){
+        if($maxperuser){
             $params['userid'] = $USER->id;
             $where .= " AND userid=:userid ";
             $sql = $select . $fields . $from . $join . $where . $groupby;
 
-            if(($total_tokens = $DB->get_record_sql($sql,$params)->totaltokens) && $total_tokens >= $this->moduleinstance->maxperuser){
-                $a = (object)['maxperuser' => $this->moduleinstance->maxperuser, 'totaltokens' => $total_tokens];
+            if(($total_tokens = $DB->get_record_sql($sql,$params)->totaltokens) && $total_tokens >= $maxperuser){
+                $a = (object)['maxperuser' => $maxperuser, 'totaltokens' => $total_tokens];
                 $this->tokenlimitinfo = get_string('usertokenlimitinfo','maici',$a);
                 return false;
             }
         }
 
         //instance limit for month
-        if($this->moduleinstance->maxpermonth){
+        if($maxpermonth){
             $date = new \DateTime();
             $date->setTimestamp(time());
             $date->modify('first day of this month');
@@ -169,8 +174,8 @@ class aichat implements templatable, renderable {
 
             $sql = $select . $fields . $from . $join . $where . $groupby;
 
-            if(($total_tokens = $DB->get_record_sql($sql,$params)->totaltokens) && $total_tokens >= $this->moduleinstance->maxpermonth){
-                $a = (object)['maxpermonth' => $this->moduleinstance->maxpermonth, 'totaltokens' => $total_tokens];
+            if(($total_tokens = $DB->get_record_sql($sql,$params)->totaltokens) && $total_tokens >= $maxpermonth){
+                $a = (object)['maxpermonth' => $maxpermonth, 'totaltokens' => $total_tokens];
                 $this->tokenlimitinfo = get_string('monthtokenlimitinfo','maici',$a);
                 return false;
             }
