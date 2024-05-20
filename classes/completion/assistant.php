@@ -58,7 +58,7 @@ class assistant extends \mod_maici\completion {
             'CURLOPT_HTTPHEADER' => array(
                 'Authorization: Bearer ' . $this->apikey,
                 'Content-Type: application/json',
-                'OpenAI-Beta: assistants=v1'
+                'OpenAI-Beta: assistants=v2'
             ),
         ));
 
@@ -79,7 +79,7 @@ class assistant extends \mod_maici\completion {
             'CURLOPT_HTTPHEADER' => array(
                 'Authorization: Bearer ' . $this->apikey,
                 'Content-Type: application/json',
-                'OpenAI-Beta: assistants=v1'
+                'OpenAI-Beta: assistants=v2'
             ),
         ));
 
@@ -110,7 +110,7 @@ class assistant extends \mod_maici\completion {
             'CURLOPT_HTTPHEADER' => array(
                 'Authorization: Bearer ' . $this->apikey,
                 'Content-Type: application/json',
-                'OpenAI-Beta: assistants=v1'
+                'OpenAI-Beta: assistants=v2'
             ),
         ));
 
@@ -136,7 +136,7 @@ class assistant extends \mod_maici\completion {
             'CURLOPT_HTTPHEADER' => array(
                 'Authorization: Bearer ' . $this->apikey,
                 'Content-Type: application/json',
-                'OpenAI-Beta: assistants=v1'
+                'OpenAI-Beta: assistants=v2'
             ),
         ));
         $response = $curl->get("https://api.openai.com/v1/threads/" . $this->thread_id . '/messages');
@@ -155,7 +155,7 @@ class assistant extends \mod_maici\completion {
             'CURLOPT_HTTPHEADER' => array(
                 'Authorization: Bearer ' . $this->apikey,
                 'Content-Type: application/json',
-                'OpenAI-Beta: assistants=v1'
+                'OpenAI-Beta: assistants=v2'
             ),
         ));
 

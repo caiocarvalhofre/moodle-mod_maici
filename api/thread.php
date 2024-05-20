@@ -49,7 +49,7 @@ $curl->setopt(array(
     'CURLOPT_HTTPHEADER' => array(
         'Authorization: Bearer ' . $apikey,
         'Content-Type: application/json',
-        'OpenAI-Beta: assistants=v1'
+        'OpenAI-Beta: assistants=v2'
     ),
 ));
 

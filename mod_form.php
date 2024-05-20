@@ -229,9 +229,9 @@ class mod_maici_mod_form extends moodleform_mod {
             $errors['maxpermonth'] = get_string('maxlengthlimit', 'mod_maici',$maxtokens);
         }
 
-        if((!isset($data['defaultapikey']) && empty($data['apikey']))
-            || (!isset($data['defaultapikey']) && !maici_fetch_assistants_array($data['apikey']))){
-            $errors['apikey'] = get_string('apikeyerror', 'mod_maici',$maxtokens);
+        if ((!isset($data['defaultapikey']) && empty($data['apikey']))
+            || (!empty($data['apikey']) && ($errormessage = maici_validate_apikey($data['apikey'])) !== true)) {
+            $errors['apikey'] = get_string('apikeyerror', 'mod_maici', $errormessage);
         }
 
         $fs = get_file_storage();
