@@ -88,6 +88,7 @@ class aichat implements templatable, renderable {
                 $data->intro = $this->intro;
                 $data->username = $this->moduleinstance->username;
                 $data->assistantname = $this->moduleinstance->assistantname;
+                $data->apiurl = $this->moduleinstance->apiurl;
                 $data->conversation_logging = $this->moduleinstance->conversation_logging ? $OUTPUT->container(get_string('conversation_logging_info','mod_maici'), 'alert alert-info') : '';
             }else{
                 $data->displayactivity = false;

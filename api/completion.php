@@ -65,6 +65,7 @@ $block_settings ['assistantname'] = $moduleinstance->assistantname;
 $block_settings ['assistant'] = $moduleinstance->assistant;
 $block_settings ['model'] = $moduleinstance->model;
 $block_settings ['apikey'] = $moduleinstance->apikey ?:get_config('mod_maici','apikey');
+$block_settings ['apiurl'] = $moduleinstance->apiurl;
 $block_settings ['maxlength'] = get_config('mod_maici', 'maxtokens');
 $block_settings ['cmid'] = $cm_id;
 $block_settings ['maiciid'] = $moduleinstance->id;

@@ -88,6 +88,10 @@ class mod_maici_mod_form extends moodleform_mod {
             $mform->addRule('apikey', null, 'required', null, 'client');
         }
 
+        $mform->addElement('text', 'apiurl', get_string('apiurl', 'mod_maici'),array('size'=>45));
+        $mform->setType('apiurl', PARAM_TEXT);
+        $mform->addHelpButton('apiurl', 'apiurl', 'mod_maici');
+
         $mform->addElement('text', 'assistantname', get_string('assistantname','mod_maici'),array('size'=>40));
         $mform->setType('assistantname', PARAM_TEXT);
         $mform->addRule('assistantname', null, 'required', null, 'client');
@@ -290,6 +294,7 @@ class mod_maici_mod_form extends moodleform_mod {
      * @param stdClass $data the form data to be modified.
      */
     public function data_postprocessing($data) {
+        error_log('DATA URL '.$data->apiurl);
         parent::data_postprocessing($data);
         if (isset($data->instructions)) {
             $data->instructionsformat = $data->instructions['format'];

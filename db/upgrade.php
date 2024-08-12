@@ -67,5 +67,17 @@ function xmldb_maici_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2024030500, 'maici');
     }
 
+    if ($oldversion < 2024072300) {
+        $table = new xmldb_table('maici');
+        $field->set_attributes('apiurl', XMLDB_TYPE_TEXT, 'big', null, false, null, null);
+
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // maici savepoint reached.
+        upgrade_mod_savepoint(true, 2024072300, 'maici');
+    }
+
     return true;
 }

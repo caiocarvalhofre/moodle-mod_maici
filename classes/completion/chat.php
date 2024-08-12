@@ -74,6 +74,7 @@ class chat extends \mod_maici\completion {
      * @return JSON: The response from OpenAI
      */
     private function make_api_call($history) {
+        // echo "Make API Call";
         $curlbody = [
             "model" => $this->model,
             "messages" => $history,
@@ -93,9 +94,8 @@ class chat extends \mod_maici\completion {
             ),
         ));
 
-        $response = $curl->post("https://api.openai.com/v1/chat/completions", json_encode($curlbody));
+        $response = $curl->post("http://prujuai:6500/chat", json_encode($curlbody));
         $response = json_decode($response);
-
         return $response;
     }
 }

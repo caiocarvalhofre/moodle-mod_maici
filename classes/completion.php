@@ -29,6 +29,7 @@ defined('MOODLE_INTERNAL') || die;
 class completion {
 
     protected $apikey;
+    protected $apiurl;
     protected $message;
     protected $history;
     protected $cmid;
